@@ -57,14 +57,18 @@ def generate_key(password, salt_size=16, load_existing_salt=False, save_salt=Tru
 def encryptor(path, key):
 	f = Fernet(key)
 
-	print(f"[*] Encrypting {path}")
-
 	with open(path, "rb") as file:
 		# read all file data
 		file_data = file.read()
     
 	# encrypt data
-	encrypted_data = f.encrypt(file_data)
+	try:
+		encrypted_data = f.encrypt(file_data)
+	except cryptography.fernet.InvalidToken:
+		print("[!] Invalid token, most likely the password is incorrect")
+		sys.exit()
+
+	print(f"[*] Encrypting {path}")
 
 	# write the encrypted file
 	with open(path, "wb") as file:
@@ -93,15 +97,19 @@ def encrypt(path, key):
 def decryptor(path, key):
 	f = Fernet(key)
 
-	print(f"[*] Decrypting {path}")
-
 	with open(path, "rb") as file:
 		# read all file data
 		file_data = file.read()
     
 	# decrypt data
-	decrypted_data = f.decrypt(file_data)
-
+	try:
+		decrypted_data = f.decrypt(file_data)
+	except cryptography.fernet.InvalidToken:
+		print("[!] Invalid token, most likely the password is incorrect")
+		sys.exit()
+	
+	print(f"[*] Decrypting {path}")
+		
 	# write the decrypted file
 	with open(path, "wb") as file:
 		file.write(decrypted_data)
@@ -134,9 +142,9 @@ if __name__ == "__main__":
 	parser.add_argument("-s", "--salt-size",required=False, help="If this is set, a new salt with the passed size is generated",
 	                    type=int)
 	parser.add_argument("-e", "--encrypt", action="store_true",
-	                    help="Whether to encrypt the file, only -e or -d can be specified.")
+	                    help="Whether to encrypt the path, only -e or -d can be specified.")
 	parser.add_argument("-d", "--decrypt", action="store_true",
-	                    help="Whether to decrypt the file, only -e or -d can be specified.")
+	                    help="Whether to decrypt the path, only -e or -d can be specified.")
 
 	args = parser.parse_args()
 	path = args.path
@@ -159,7 +167,7 @@ if __name__ == "__main__":
 	encrypt_ = args.encrypt
 	decrypt_ = args.decrypt
 
-	war_message = "[!] Please specify whether you want to encrypt the file or decrypt it."
+	war_message = "[!] Please specify whether you want to encrypt the path or decrypt it."
 	if encrypt_ and decrypt_:
 	    raise TypeError(war_message)
 	elif encrypt_:
