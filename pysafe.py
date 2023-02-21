@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
+import base64
 import cryptography
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
+import getpass
+import pathlib
 import os
 import secrets
 import sys
-import base64
-import getpass
+
 
 
 def generate_salt(size=16):
@@ -52,27 +54,44 @@ def generate_key(password, salt_size=16, load_existing_salt=False, save_salt=Tru
     # encode it using Base 64 and return it
     return base64.urlsafe_b64encode(derived_key)
 
+def encryptor(path, key):
+	f = Fernet(key)
 
-def encrypt(filename, key):
-    """
-    Given a filename (str) and key (bytes), it encrypts the file and write it
-    """
-    f = Fernet(key)
-    with open(filename, "rb") as file:
-        # read all file data
-        file_data = file.read()
+	print(f"[*] Encrypting {path}")
+
+	with open(path, "rb") as file:
+		# read all file data
+		file_data = file.read()
     
-    # encrypt data
-    encrypted_data = f.encrypt(file_data)
+	# encrypt data
+	encrypted_data = f.encrypt(file_data)
+
+	# write the encrypted file
+	with open(path, "wb") as file:
+		file.write(encrypted_data)
+
+def encrypt(path, key):
+	"""
+	Given a path (str) and key (bytes), it encrypts the path and write it
+	"""
+	if os.path.isdir(path):
+		# if it's a folder, encrypt the entire folder (i.e all the containing files)
+		for child in pathlib.Path(path).glob("*"):
+			if child.is_file():
+				# encrypt the file
+				encryptor(child, key)
+			elif child.is_dir():
+				# if it's a folder, encrypt the entire folder by calling this function recursively
+				encrypt(child, key)
+
+	elif os.path.isfile(path):
+		encryptor(path, key)
     
-    # write the encrypted file
-    with open(filename, "wb") as file:
-        file.write(encrypted_data)
     
-    print("[+] File encrypted successfully")
+	print("\n[+] Encryption successfully completed!")
 
 
-def decrypt(filename, key):
+def decrypt(path, key):
 	"""
 	Given a filename (str) and key (bytes), it decrypts the file and write it
 	"""
@@ -100,7 +119,7 @@ if __name__ == "__main__":
 	import argparse
 
 	parser = argparse.ArgumentParser(description="PySafe File Encryptor")
-	parser.add_argument("-f", "--file", help="File to encrypt/decrypt")
+	parser.add_argument("-p", "--path", help="Path to encrypt/decrypt")
 	parser.add_argument("-s", "--salt-size",required=False, help="If this is set, a new salt with the passed size is generated",
 	                    type=int)
 	parser.add_argument("-e", "--encrypt", action="store_true",
@@ -109,7 +128,7 @@ if __name__ == "__main__":
 	                    help="Whether to decrypt the file, only -e or -d can be specified.")
 
 	args = parser.parse_args()
-	file = args.file
+	path = args.path
 	
 	try:
 		if args.encrypt:
@@ -133,8 +152,8 @@ if __name__ == "__main__":
 	if encrypt_ and decrypt_:
 	    raise TypeError(war_message)
 	elif encrypt_:
-	    encrypt(file, key)
+	    encrypt(path, key)
 	elif decrypt_:
-	    decrypt(file, key)
+	    decrypt(path, key)
 	else:
 	    raise TypeError(war_message)
