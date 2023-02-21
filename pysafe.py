@@ -90,29 +90,40 @@ def encrypt(path, key):
     
 	print("\n[+] Encryption successfully completed!")
 
+def decryptor(path, key):
+	f = Fernet(key)
+
+	print(f"[*] Decrypting {path}")
+
+	with open(path, "rb") as file:
+		# read all file data
+		file_data = file.read()
+    
+	# decrypt data
+	decrypted_data = f.decrypt(file_data)
+
+	# write the decrypted file
+	with open(path, "wb") as file:
+		file.write(decrypted_data)
 
 def decrypt(path, key):
 	"""
-	Given a filename (str) and key (bytes), it decrypts the file and write it
+	Given a path (str) and key (bytes), it decrypts the path and write it
 	"""
-	f = Fernet(key)
-	with open(filename, "rb") as file:
-	    # read the encrypted data
-	    encrypted_data = file.read()
+	if os.path.isdir(path):
+		# if it's a folder, decrypt the entire folder (i.e all the containing files)
+		for child in pathlib.Path(path).glob("*"):
+			if child.is_file():
+				# decrypt the file
+				decryptor(child, key)
+			elif child.is_dir():
+				# if it's a folder, decrypt the entire folder by calling this function recursively
+				decrypt(child, key)
+
+	elif os.path.isfile(path):
+		decryptor(path, key)
 	
-	# decrypt data
-	try:
-	    decrypted_data = f.decrypt(encrypted_data)
-	#except cryptography.fernet.InvalidToken:
-	except Exception:
-		print("[!] Invalid token, most likely the password is incorrect")
-		return
-	
-	# write the original file
-	with open(filename, "wb") as file:
-		file.write(decrypted_data)
-	
-	print("[+] File decrypted successfully")
+	print("\n[+] Decryption successfully completed!")
 
 
 if __name__ == "__main__":
