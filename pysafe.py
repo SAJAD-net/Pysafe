@@ -3,7 +3,7 @@
 import cryptography
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
-
+import os
 import secrets
 import sys
 import base64
@@ -35,11 +35,17 @@ def generate_key(password, salt_size=16, load_existing_salt=False, save_salt=Tru
     if load_existing_salt:
         # load existing salt
         salt = load_salt()
-    elif save_salt:
+    
+    elif save_salt:    
         # generate new salt and save it
         salt = generate_salt(salt_size)
+        
+        if not (os.path.exists("conf")):
+        	os.mkdir("conf")
+
         with open("conf/pysalt.salt", "wb") as salt_file:
             salt_file.write(salt)
+    
     # generate the key from the salt and the password
     derived_key = derive_key(salt, password)
     # encode it using Base 64 and return it
@@ -55,11 +61,14 @@ def encrypt(filename, key):
     with open(filename, "rb") as file:
         # read all file data
         file_data = file.read()
+    
     # encrypt data
     encrypted_data = f.encrypt(file_data)
+    
     # write the encrypted file
     with open(filename, "wb") as file:
         file.write(encrypted_data)
+    
     print("[+] File encrypted successfully")
 
 
@@ -71,6 +80,7 @@ def decrypt(filename, key):
 	with open(filename, "rb") as file:
 	    # read the encrypted data
 	    encrypted_data = file.read()
+	
 	# decrypt data
 	try:
 	    decrypted_data = f.decrypt(encrypted_data)
@@ -79,9 +89,11 @@ def decrypt(filename, key):
 		print(err)
 		print("[!] Invalid token, most likely the password is incorrect")
 		return
+	
 	# write the original file
 	with open(filename, "wb") as file:
 		file.write(decrypted_data)
+	
 	print("[+] File decrypted successfully")
 
 
@@ -104,8 +116,8 @@ if __name__ == "__main__":
 
 	args = parser.parse_args()
 	file = args.file
+	
 	try:
-
 		if args.encrypt:
 			password = getpass.getpass("[+] Enter the password for encryption: ")
 		elif args.decrypt:
@@ -117,6 +129,7 @@ if __name__ == "__main__":
 			key = generate_key(password, load_existing_salt=True)
 
 	except Exception as err:
+		print(err)
 		parser.print_help()
 		sys.exit()
 
