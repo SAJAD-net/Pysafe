@@ -48,9 +48,9 @@ def generate_key(password, salt_size=16, load_existing_salt=False, save_salt=Tru
     
     # generate the key from the salt and the password
     derived_key = derive_key(salt, password)
+
     # encode it using Base 64 and return it
     return base64.urlsafe_b64encode(derived_key)
-
 
 
 def encrypt(filename, key):
@@ -85,8 +85,7 @@ def decrypt(filename, key):
 	try:
 	    decrypted_data = f.decrypt(encrypted_data)
 	#except cryptography.fernet.InvalidToken:
-	except Exception as err:
-		print(err)
+	except Exception:
 		print("[!] Invalid token, most likely the password is incorrect")
 		return
 	
@@ -95,11 +94,6 @@ def decrypt(filename, key):
 		file.write(decrypted_data)
 	
 	print("[+] File decrypted successfully")
-
-
-
-def pass_for_keygen():
-	password = getpass.getpass("[+] Enter the password for encryption: ")
 
 
 if __name__ == "__main__":
@@ -128,8 +122,7 @@ if __name__ == "__main__":
 		else:
 			key = generate_key(password, load_existing_salt=True)
 
-	except Exception as err:
-		print(err)
+	except Exception:
 		parser.print_help()
 		sys.exit()
 
