@@ -21,7 +21,7 @@ def derive_key(salt, password):
 
 def load_salt():
     # load salt from pysalt.salt file
-    return open("pysalt.salt", "rb").read()
+    return open("conf/pysalt.salt", "rb").read()
 
 
 def generate_key(password, salt_size=16, load_existing_salt=False, save_salt=True):
@@ -38,7 +38,7 @@ def generate_key(password, salt_size=16, load_existing_salt=False, save_salt=Tru
     elif save_salt:
         # generate new salt and save it
         salt = generate_salt(salt_size)
-        with open("pysalt.salt", "wb") as salt_file:
+        with open("conf/pysalt.salt", "wb") as salt_file:
             salt_file.write(salt)
     # generate the key from the salt and the password
     derived_key = derive_key(salt, password)
