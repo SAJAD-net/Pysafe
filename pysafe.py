@@ -98,8 +98,6 @@ def encrypt(path, key):
     elif os.path.isfile(path):
         encryptor(path, key)
 
-    print("\n[+] Encryption successfully completed!")
-
 
 def decryptor(path, key):
     f = Fernet(key)
@@ -138,8 +136,6 @@ def decrypt(path, key):
 
     elif os.path.isfile(path):
         decryptor(path, key)
-
-    print("\n[+] Decryption successfully completed!")
 
 
 if __name__ == "__main__":
@@ -180,7 +176,9 @@ if __name__ == "__main__":
         raise TypeError(WAR_MESSAGE)
     elif encrypt_:
         encrypt(path, key)
+        print("\n[+] Encryption successfully completed!")
     elif decrypt_:
         decrypt(path, key)
+        print("\n[+] Decryption successfully completed!")
     else:
         raise TypeError(WAR_MESSAGE)
