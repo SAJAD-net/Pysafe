@@ -22,33 +22,28 @@ def derive_key(salt, password):
     return kdf.derive(password.encode())
 
 
-def load_salt():
+def load_salt(path):
     # load salt from pysalt.salt file
-    return open("conf/pysalt.salt", "rb").read()
-
-
-def generate_key(password, salt_size=16, load_existing_salt=False, save_salt=True):
-    """
-    Generates a key from a `password` and the salt.
-    If `load_salt` is True, it'll load the salt from a file
-    in the current directory called "pysalt.salt".
-    If `save_salt` is True, then it will generate a new salt
-    and save it to "pysalt.salt"
-    """
-    if load_existing_salt:
-        # load existing salt
-        salt = load_salt()
-
-    elif save_salt:
-        # generate new salt and save it
-        salt = generate_salt(salt_size)
-
-        if not os.path.exists("conf"):
-            os.mkdir("conf")
-
-        with open("conf/pysalt.salt", "wb") as salt_file:
+    if os.path.exists(f"{path}conf/pysalt.salt"):    
+        salt = open(f"{path}conf/pysalt.salt", "rb").read()
+    else:
+        salt = generate_salt()
+        if not os.path.exists(f"{path}conf"):
+            os.mkdir(f"{path}conf")
+        with open(f"{path}conf/pysalt.salt", "wb") as salt_file:
             salt_file.write(salt)
 
+    return salt
+
+
+def generate_key(password, path, salt_size=16):
+    """
+    Generates a key from a `password` and the salt.
+    """
+    
+    # load existing salt
+    salt = load_salt(path)
+    # sys.exit()
     # generate the key from the salt and the password
     derived_key = derive_key(salt, password)
 
@@ -56,25 +51,28 @@ def generate_key(password, salt_size=16, load_existing_salt=False, save_salt=Tru
     return base64.urlsafe_b64encode(derived_key)
 
 
-def encryptor(path, key):
-    frnet = Fernet(key)
+def encryptor(file, key):
+    fkey = Fernet(key)
+    
+    if "pysalt.salt" in str(file):
+        return
 
-    with open(path, "rb") as file:
+    with open(file, "rb") as f:
         # read all file data
-        file_data = file.read()
+        file_data = f.read()
 
     # encrypt data
     try:
-        encrypted_data = frnet.encrypt(file_data)
+        encrypted_data = fkey.encrypt(file_data)
     except cryptography.fernet.InvalidToken:
         print("[!] Invalid token, most likely the password is incorrect")
         sys.exit()
 
-    print(f"[*] Encrypting {path}")
+    print(f"[*] Encrypting {file}")
 
     # write the encrypted file
-    with open(path, "wb") as file:
-        file.write(encrypted_data)
+    with open(file, "wb") as f:
+        f.write(encrypted_data)
 
 
 def encrypt(path, key):
@@ -99,25 +97,28 @@ def encrypt(path, key):
         encryptor(path, key)
 
 
-def decryptor(path, key):
-    f = Fernet(key)
+def decryptor(file, key):
+    fkey = Fernet(key)
+    
+    if "pysalt.salt" in str(file):
+        return
 
-    with open(path, "rb") as file:
+    with open(file, "rb") as f:
         # read all file data
-        file_data = file.read()
+        file_data = f.read()
 
     # decrypt data
     try:
-        decrypted_data = f.decrypt(file_data)
+        decrypted_data = fkey.decrypt(file_data)
     except cryptography.fernet.InvalidToken:
         print("[!] Invalid token, most likely the password is incorrect")
         sys.exit()
 
-    print(f"[*] Decrypting {path}")
+    print(f"[*] Decrypting {file}")
 
     # write the decrypted file
-    with open(path, "wb") as file:
-        file.write(decrypted_data)
+    with open(file, "wb") as f:
+        f.write(decrypted_data)
 
 
 def decrypt(path, key):
@@ -152,6 +153,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     path = args.path
+    if path.split("/")[-1] != '':
+        path+="/"
 
     try:
         if args.encrypt:
@@ -160,9 +163,9 @@ if __name__ == "__main__":
             password = getpass.getpass("[+] Enter the password you used for encryption: ")
 
         if args.salt_size:
-            key = generate_key(password, salt_size=args.salt_size, save_salt=True)
+            key = generate_key(password, path, salt_size=args.salt_size)
         else:
-            key = generate_key(password, load_existing_salt=True)
+            key = generate_key(password, path)
 
     except Exception:
         parser.print_help()
