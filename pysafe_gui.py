@@ -172,27 +172,17 @@ class Ui_MainWindow(object):
                 salt_file.write(self.salt)
 
     
-    def generate_key(self, password, salt_size=16, load_existing_salt=True, save_salt=True):
+    def generate_key(self, password, salt_size=16, load_existing_salt=True):
         """
         Generates a key from a `password` and the salt.
         If `load_salt` is True, it'll load the salt from a file
         in the current directory called "pysalt.salt".
-        If `save_salt` is True, then it will generate a new salt
-        and save it to "pysalt.salt"
         """
+        
         if load_existing_salt:
             # load existing salt
             self.load_salt()
             
-        elif save_salt:
-            # generate new salt and save it
-            self.salt = self.generate_salt(salt_size)
-            if not os.path.exists(f"{self.path}/conf"):
-                os.mkdir(f"{self.path}/conf")
-
-            with open(f"{self.path}/conf/pysalt.salt", "wb") as salt_file:
-                salt_file.write(self.salt)
-
         # generate the key from the salt and the password
         derived_key = self.derive_key(self.salt, password)
 
