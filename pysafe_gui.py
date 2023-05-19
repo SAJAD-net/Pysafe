@@ -110,7 +110,7 @@ class Ui_MainWindow(object):
     def start(self):
         password = self.passwordDialog()
         if password:
-            self.key = self.generate_key(password, load_existing_salt=True)
+            self.key = self.generate_key(password)
         else:
             return
 
@@ -172,17 +172,14 @@ class Ui_MainWindow(object):
                 salt_file.write(self.salt)
 
     
-    def generate_key(self, password, salt_size=16, load_existing_salt=True):
+    def generate_key(self, password, salt_size=16):
         """
         Generates a key from a `password` and the salt.
-        If `load_salt` is True, it'll load the salt from a file
-        in the current directory called "pysalt.salt".
-        """
+        """    
         
-        if load_existing_salt:
-            # load existing salt
-            self.load_salt()
-            
+        # load existing salt
+        self.load_salt()
+        
         # generate the key from the salt and the password
         derived_key = self.derive_key(self.salt, password)
 
