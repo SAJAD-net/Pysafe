@@ -115,12 +115,17 @@ class Ui_MainWindow(object):
             return
 
         self.status_text.append(f"Total files: {self.count}")
+        self.progressBar.setValue(0)
+        self.num = 1
         
         if self.action == "encrypt":
             self.encrypt(self.files)
+            self.progressBar.setValue(100)
         elif self.action == "decrypt":
             self.decrypt(self.files)
-    
+            self.progressBar.setValue(100)
+            
+
     def passwordDialog(self):
         """Small input dialog for password"""
         password, ok = QInputDialog.getText(None , 'Input Dialog', 'Password:',echo=QLineEdit.Password)
@@ -186,7 +191,12 @@ class Ui_MainWindow(object):
         # encode it using Base64 and return it
         return base64.urlsafe_b64encode(derived_key)
 
-
+    
+    def progressbar(self):
+        self.percom = 100//(self.count+1)
+        self.progressBar.setValue(self.percom*self.num)
+    
+    
     def encryptor(self, path):
         frnet = Fernet(self.key)
 
@@ -207,11 +217,14 @@ class Ui_MainWindow(object):
         # write the encrypted file
         with open(path, "wb") as file:
             file.write(encrypted_data)
+        
+        self.progressbar()
 
 
     def encrypt(self, files):
         try:
             for file in files:
+                self.num+=1
                 self.encryptor(file)
             self.status_text.append("\n[+] Encryption successfully completed!\n")
         except Exception as e:
@@ -240,18 +253,21 @@ class Ui_MainWindow(object):
         # write the decrypted file
         with open(path, "wb") as file:
             file.write(decrypted_data)
+        
+        self.progressbar()
 
 
     def decrypt(self, files):
         try:
             for file in files:
+                self.num+=1
                 self.decryptor(file)        
             self.status_text.append("\n[+] Decryption successfully completed!")
         except:
             self.status_text.append("\n[+] Decryption failed!")
             
         self.status_text.append("-"*44)
-    
+        
     
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
