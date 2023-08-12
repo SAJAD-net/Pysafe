@@ -153,7 +153,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     path = args.path
-    if path.split("/")[-1] != '':
+    if path and not(path.endswith('/')):
         path+="/"
 
     try:
