@@ -19,3 +19,7 @@ File encryptor
                             specified.
       -d, --decrypt         Whether to decrypt the path, only -e or -d can be
                             specified.
+## GUI Preview
+![pysafe_com](https://github.com/SAJAD-net/Pysafe/assets/71703544/a78cdb20-874c-47aa-b33b-90f5efa277e9)
+
+![pysafe_proc](https://github.com/SAJAD-net/Pysafe/assets/71703544/43e7c352-9ab2-4c0d-ab96-70e08ab6c417)
