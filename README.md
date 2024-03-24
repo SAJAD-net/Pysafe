@@ -1,5 +1,5 @@
-# Pysafe
-File encryptor
+# Pysafe 🔥
+⚡ Encrypting files with AES algorithm.
 
 ## Necessarry libraries installation:
     pip install -r requirements.txt
