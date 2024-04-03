@@ -24,9 +24,5 @@
 
 ![pysafe_proc](https://github.com/SAJAD-net/Pysafe/assets/71703544/43e7c352-9ab2-4c0d-ab96-70e08ab6c417)
 
-## CONTRIBUTION
-Contributions are all welcome!!<br/>
-Read This first : 🔥[How To Contribute](./CONTRIBUTION.md)🔥
-
 ## TODO
 - [ ] A better and more productive UI
